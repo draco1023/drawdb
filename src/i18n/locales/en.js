@@ -249,6 +249,8 @@ const en = {
     supported_types: "Supported file types:",
     revisions: "Revisions",
     no_saved_revisions: "No saved revisions",
+    version: "Version",
+    record_version: "Record version",
   },
 };
 
