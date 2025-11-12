@@ -2,7 +2,7 @@ import { Cardinality } from "../../data/constants";
 import { dbToTypes } from "../../data/datatypes";
 import i18n from "../../i18n/i18n";
 import { escapeQuotes } from "../exportSQL/shared";
-import { isFunction, isKeyword } from "../utils";
+import { isFunction } from "../utils";
 
 const IDENT_SAFE_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
@@ -21,11 +21,17 @@ function parseDefaultDbml(field, database) {
     return `\`${field.default}\``;
   }
 
-  if (isKeyword(field.default) || !dbToTypes[database][field.type]?.hasQuotes) {
+  if (isCommonKeyword(field.default) || !dbToTypes[database][field.type]?.hasQuotes) {
     return field.default;
   }
 
   return `'${escapeQuotes(field.default)}'`;
+}
+
+function isCommonKeyword(str) {
+  if (typeof str !== "string") return false;
+
+  return ["NULL", "TRUE", "FALSE"].includes(str.toUpperCase());
 }
 
 function columnDefault(field, database) {
@@ -112,7 +118,7 @@ export function toDBML(diagram) {
       (f) => f.id === rel.endFieldId,
     );
 
-    return `Ref ${quoteIdentifier(rel.name)} {\n\t${quoteIdentifier(startTableName)}.${quoteIdentifier(startFieldName)} ${cardinality(rel)} ${quoteIdentifier(endTableName)}.${quoteIdentifier(endFieldName)} [ delete: ${rel.deleteConstraint.toLowerCase()}, update: ${rel.updateConstraint.toLowerCase()} ]\n}`;
+    return `//Ref ${quoteIdentifier(rel.name)} { ${quoteIdentifier(startTableName)}.${quoteIdentifier(startFieldName)} ${cardinality(rel)} ${quoteIdentifier(endTableName)}.${quoteIdentifier(endFieldName)} [ delete: ${rel.deleteConstraint.toLowerCase()}, update: ${rel.updateConstraint.toLowerCase()} ] }`;
   };
 
   let enumDefinitions = "";

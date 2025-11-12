@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 const parser = new Parser();
 
 export function fromDBML(src) {
-  const ast = parser.parse(src, "dbmlv2");
+  const ast = parser.parse(src.replaceAll("//Ref", "Ref"), "dbmlv2");
 
   const tables = [];
   const enums = [];
@@ -27,11 +27,14 @@ export function fromDBML(src) {
 
         field.id = nanoid();
         field.name = column.name;
-        field.type = column.type.type_name.toUpperCase();
+        const bracketIndex = column.type.type_name.indexOf("(");
+        field.type = bracketIndex < 0 ? column.type.type_name.toUpperCase() : column.type.type_name.substring(0, bracketIndex).toUpperCase();
+        if (column.type.args)
+          field.size = column.type.args;
         field.default = column.dbdefault?.value ?? "";
         field.check = "";
         field.primary = !!column.pk;
-        field.unique = !!column.pk;
+        // field.unique = !!column.pk;
         field.notNull = !!column.not_null;
         field.increment = !!column.increment;
         field.comment = column.note ?? "";
